@@ -42,6 +42,7 @@ int sem_down(sem_t sem)
     if (sem == NULL)
         return -1;
     
+    sem->sem_count--;
     
     return 0;
 }
@@ -50,6 +51,8 @@ int sem_up(sem_t sem)
 {
     if (sem == NULL)
         return -1;
+    
+    sem->sem_count++;
     
     return 0;
 }

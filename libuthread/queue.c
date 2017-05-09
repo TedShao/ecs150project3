@@ -12,6 +12,7 @@ struct node {
 
 struct queue{
     struct node * head, *tail;
+    int num_nodes;
 };
 
 queue_t queue_create(void)
@@ -20,6 +21,8 @@ queue_t queue_create(void)
 
     q->head = NULL;
     q->tail = NULL;
+    
+    q->num_nodes = 0;
 
     if (q == NULL)
     {
@@ -61,6 +64,7 @@ int queue_enqueue(queue_t queue, void *data)
         queue->tail->next = node;
         queue->tail = node;
     }
+    queue->num_nodes++;
 
     return 0;
 }
@@ -81,6 +85,8 @@ int queue_dequeue(queue_t queue, void **data)
     	queue->tail = NULL;
     	queue->head = NULL;
       }
+    
+    queue->num_nodes--;
 
     return 0;
 }
@@ -136,7 +142,7 @@ int queue_delete(queue_t queue, void *data)
         }
     }
 
-
+    queue->num_nodes--;
     return 0;
 }
 
@@ -164,17 +170,5 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 
 int queue_length(queue_t queue)
 {
-    int size = 0;
-    if (queue->head == NULL && queue->tail == NULL)
-        return 0;
-    struct node * temp = queue->head;
-    while (temp != queue->tail)
-    {
-        temp = temp->next;
-        size++;
-    }
-    if (temp == queue->tail)
-        size++;
-
-    return size;
+    return queue->num_nodes;
 }
