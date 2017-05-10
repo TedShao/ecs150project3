@@ -40,17 +40,17 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
-    if (sem == NULL)
-        return -1;
+    //if (sem == NULL)
+      //  return -1;
     
     
-    if (sem->sem_count - 1 < 0)
-    {
-        thread_block();
-        return -1;
-    }
+    //if (sem->sem_count - 1 < 0)
+    //{
+      //  thread_block();
+       // return -1;
+    //}
     
-    sem->sem_count--;
+    //sem->sem_count--;
     
     return 0;
 }

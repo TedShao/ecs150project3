@@ -3,18 +3,24 @@ objs    := sem.o tps.o queue.o
 CC = gcc
 CFLAGS  = -g -Wall
 
+ifneq ($(V),1)
+Q=@
+endif
+
 deps := $(patsubst %.o,%.d,$(objs)) 
 -include $(deps)
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
-libuthread.a: 	sem.o tps.o queue.o
-		ar rcs libuthread.a sem.o tps.o queue.o
+libuthread.a: 	$(objs)
+		@ echo "AR $@"
+		$(Q)ar rcs $@ $^
 
-%.o: %.c         
+%.o: %.c 
+	@echo "CC $@"	
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $< $(DEPFLAGS)
 
 clean:
-		rm -f *.o *.a *.gch
+		@echo "clean"
 		$(Q)rm -f $(targets) $(objs) $(deps)
 
 
