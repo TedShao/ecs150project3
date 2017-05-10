@@ -8,7 +8,7 @@
 
 
 struct semaphore{
-    size_t sem_count;
+    int sem_count;
 };
 
 struct queue * s_queue; //waiting for resources
