@@ -62,13 +62,8 @@ int sem_up(sem_t sem)
     if (sem == NULL)
         return -1;
     
-<<<<<<< HEAD
     if (sem->sem_count == 0)
         thread_unblock();//unblock first blocked thread
-=======
-    //if (sem->sem_count == 0)
-        //thread_unblock();//unblock first blocked thread
->>>>>>> c0cda198533b248a304de6fb6e42db117723969e
     
     sem->sem_count++;
     
