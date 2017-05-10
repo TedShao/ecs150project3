@@ -52,7 +52,6 @@ int sem_down(sem_t sem)
         enter_critical_section();
         queue_enqueue(sem->waiting,(void*)pthread_self());
         thread_block();
-        return -1;
     }
     
     sem->sem_count--;
