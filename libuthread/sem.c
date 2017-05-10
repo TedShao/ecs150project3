@@ -16,16 +16,14 @@ struct semaphore{
 
 sem_t sem_create(size_t count)
 {
-    struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));
-    s->sem_count = 0;
-    
-    s->waiting = queue_create();
-    
+    struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));  
     if (s)
     {
         s->sem_count = count;
+        s->waiting = queue_create();
         return s;
     }
+    
     return NULL;
 }
 
