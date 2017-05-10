@@ -17,6 +17,7 @@ struct queue * s_queue; //waiting for resources
 sem_t sem_create(size_t count)
 {
     struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));
+    s->sem_count = 0;
     
     if (s)
     {
@@ -40,7 +41,7 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
-    if (sem == NULL)
+    /*if (sem == NULL)
         return -1;
     
     
@@ -50,7 +51,7 @@ int sem_down(sem_t sem)
         return -1;
     }
     
-    sem->sem_count--;
+    sem->sem_count--;*/
     
     return 0;
 }
