@@ -17,6 +17,7 @@ struct queue * s_queue; //waiting for resources
 sem_t sem_create(size_t count)
 {
     struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));
+    s->sem_count = 0;
     
     if (s)
     {
