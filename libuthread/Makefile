@@ -21,6 +21,6 @@ libuthread.a: 	$(objs)
 
 clean:
 		@echo "clean"
-		$(Q)rm -f $(targets) $(objs) $(deps)
+		$(Q)rm -f $(objs) $(deps)
 
 
