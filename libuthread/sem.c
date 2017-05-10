@@ -47,7 +47,7 @@ int sem_down(sem_t sem)
        return -1;
     
     
-    if (sem->sem_count - 1 <= 0)
+    if (sem->sem_count - 1 < 0)
     {
         queue_enqueue(sem->waiting,(void*)pthread_self());
         thread_block();
