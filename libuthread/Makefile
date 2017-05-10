@@ -1,4 +1,4 @@
-objs    := sem.o tps.o queue.o
+objs    := sem.o tps.o queue.o 
 
 CC = gcc
 CFLAGS  = -g -Wall

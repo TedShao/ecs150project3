@@ -30,11 +30,11 @@ sem_t sem_create(size_t count)
 
 
 int sem_destroy(sem_t sem)
-{
-    queue_delete(s_queue, (void*)sem);
-    
+{   
     if (sem == NULL)
         return -1;
+    
+    free(sem);
     
     return 0;
 }
@@ -58,11 +58,12 @@ int sem_down(sem_t sem)
 
 int sem_up(sem_t sem)
 {
+   
     if (sem == NULL)
         return -1;
     
     if (sem->sem_count == 0)
-        //thread_unblock();//unblock first blocked thread
+        thread_unblock();//unblock first blocked thread
     
     sem->sem_count++;
     
