@@ -40,12 +40,11 @@ int sem_destroy(sem_t sem)
 }
 
 int sem_down(sem_t sem)
-{
-    enter_critical_section();
-    
+{   
     if (sem == NULL)
        return -1;
-    
+       
+    enter_critical_section();
     
     if (sem->sem_count == 0)
     {
@@ -56,6 +55,7 @@ int sem_down(sem_t sem)
     if (sem->sem_count > 0)
         sem->sem_count--;
     
+    exit_critical_section();
     return 0;
 }
 
@@ -64,15 +64,16 @@ int sem_up(sem_t sem)
     if (sem == NULL)
         return -1;
     
+    enter_critical_section();
+    
     if (sem->sem_count == 0)
     {
         pthread_t tid;
-        exit_critical_section();
         queue_dequeue(sem->waiting,(void*)&tid);
         thread_unblock(tid);//unblock first blocked thread
     }
-    
     sem->sem_count++;
+    exit_critical_section();
     
     return 0;
 }
