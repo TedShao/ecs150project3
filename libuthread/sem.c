@@ -70,6 +70,7 @@ int sem_up(sem_t sem)
         exit_critical_section();
         queue_dequeue(sem->waiting,(void*)&tid);
         thread_unblock(tid);//unblock first blocked thread
+        enter_critical_section();
     }
     
     sem->sem_count++;
