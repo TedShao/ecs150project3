@@ -52,7 +52,8 @@ int sem_down(sem_t sem)
         thread_block();
     }
     
-    sem->sem_count--;
+    if (sem->sem_count > 0)
+        sem->sem_count--;
     
     return 0;
 }
