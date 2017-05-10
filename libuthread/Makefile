@@ -11,7 +11,7 @@ deps := $(patsubst %.o,%.d,$(objs))
 -include $(deps)
 DEPFLAGS = -MMD -MF $(@:.o=.d)
 
-libuthread.a: 	$(objs)
+libuthread.a: 	$(objs) thread.o
 		@ echo "AR $@"
 		$(Q)ar rcs $@ $^
 

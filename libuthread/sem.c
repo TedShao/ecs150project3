@@ -41,17 +41,17 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
-    //if (sem == NULL)
-      //  return -1;
+    if (sem == NULL)
+       return -1;
     
     
-    //if (sem->sem_count - 1 < 0)
-    //{
-      //  thread_block();
-       // return -1;
-    //}
+    if (sem->sem_count - 1 < 0)
+    {
+       thread_block();
+        return -1;
+    }
     
-    //sem->sem_count--;
+    sem->sem_count--;
     
     return 0;
 }
@@ -61,7 +61,7 @@ int sem_up(sem_t sem)
     if (sem == NULL)
         return -1;
     
-    if (sem->sem_count == 0)
+    //if (sem->sem_count == 0)
         //thread_unblock();//unblock first blocked thread
     
     sem->sem_count++;
