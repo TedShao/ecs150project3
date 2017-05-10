@@ -41,7 +41,7 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
-    /*if (sem == NULL)
+    if (sem == NULL)
         return -1;
     
     
@@ -51,7 +51,7 @@ int sem_down(sem_t sem)
         return -1;
     }
     
-    sem->sem_count--;*/
+    sem->sem_count--;
     
     return 0;
 }
