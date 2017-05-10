@@ -13,7 +13,6 @@ struct semaphore{
 
 struct queue * s_queue; //waiting for resources
 
-
 sem_t sem_create(size_t count)
 {
     struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));
@@ -58,12 +57,13 @@ int sem_down(sem_t sem)
 
 int sem_up(sem_t sem)
 {
-   
+    pthread_t curtid = pthread_self(); 
+    
     if (sem == NULL)
         return -1;
     
     if (sem->sem_count == 0)
-        thread_unblock();//unblock first blocked thread
+        thread_unblock(curtid);//unblock first blocked thread
     
     sem->sem_count++;
     
