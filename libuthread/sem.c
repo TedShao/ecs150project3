@@ -41,13 +41,14 @@ int sem_destroy(sem_t sem)
 
 int sem_down(sem_t sem)
 {
+    enter_critical_section();
+    
     if (sem == NULL)
        return -1;
     
     
     if (sem->sem_count == 0)
     {
-        enter_critical_section();
         queue_enqueue(sem->waiting,(void*)pthread_self());
         thread_block();
     }
