@@ -73,7 +73,7 @@ int sem_up(sem_t sem)
         thread_unblock(tid);//unblock first blocked thread
     }
     
-    if (sem->sem_count > 0)
+    if (sem->sem_count >= 0)
         sem->sem_count++;
     
     exit_critical_section();
