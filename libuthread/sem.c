@@ -53,7 +53,8 @@ int sem_down(sem_t sem)
         thread_block();
     }
     
-    sem->sem_count -= 1;
+    if (sem->sem_count > 0)
+        sem->sem_count -= 1;
     
     exit_critical_section();
     return 0;
