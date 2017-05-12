@@ -72,7 +72,10 @@ int sem_up(sem_t sem)
         queue_dequeue(sem->waiting,(void*)&tid);
         thread_unblock(tid);//unblock first blocked thread
     }
-    sem->sem_count++;
+    
+    if (sem->sem_count > 0)
+        sem->sem_count++;
+    
     exit_critical_section();
     
     return 0;
