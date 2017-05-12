@@ -19,6 +19,7 @@ sem_t sem_create(size_t count)
     struct semaphore * s = (struct semaphore *)malloc(sizeof(struct semaphore));  
     if (s)
     {
+        s->sem_count = 0;
         s->sem_count = count;
         s->waiting = queue_create();
         return s;
@@ -53,7 +54,7 @@ int sem_down(sem_t sem)
     }
     
     if (sem->sem_count > 0)
-        sem->sem_count--;
+        sem->sem_count -=1;
     
     exit_critical_section();
     return 0;
@@ -73,8 +74,8 @@ int sem_up(sem_t sem)
         thread_unblock(tid);//unblock first blocked thread
     }
     
-    if (sem->sem_count >= 0)
-        sem->sem_count++;
+    
+    sem->sem_count +=1;
     
     exit_critical_section();
     
