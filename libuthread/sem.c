@@ -67,7 +67,7 @@ int sem_up(sem_t sem)
     if (sem == NULL)
         return -1;
     
-    if (sem->sem_count == 0)
+    while (sem->sem_count == 0)
     {
         pthread_t tid;
         queue_dequeue(sem->waiting,(void*)&tid);
