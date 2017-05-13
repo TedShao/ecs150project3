@@ -16,6 +16,7 @@
 struct tpsNode{
     pthread_t TID;//tid using TPS
     void * ourmmap;//pointer to address of mapping
+    char * ourmmapfile;
 };
 
 struct tps{
@@ -73,6 +74,7 @@ int tps_create(void)
     if (node)
     {
         node->TID = pthread_self();
+	node->ourmmapfile = ourmmapfile;
         node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0);
         
         
@@ -117,13 +119,36 @@ int tps_destroy(void)
 
 int tps_read(size_t offset, size_t length, char *buffer)
 {
-    
+	int fd;
+	pthread_t curtid = pthread_self();
+        struct tpsNode * curTPS;
+	int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
+	if(retval!=0)
+		return -1;
+
+	fd = open(curTPS->ourmmapfile,O_RDONLY);
+	if(fd==-1)
+		return -1;
+	buffer= mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);
+
+	
+		
     return 0;
 }
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
-    
+   	int fd;
+  	pthread_t curtid= pthread_self();
+	struct tpsNode * curTPS;
+	int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
+	if(retval!=0)
+		return -1;
+
+	fd = open(curTPS->ourmmapfile,O_WRONLY);
+	if(fd==-1)
+		return -1;
+	buffer = mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
     return 0;
 }
 
