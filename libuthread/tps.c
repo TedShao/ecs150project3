@@ -64,7 +64,7 @@ int tps_init(int segv)
 
 int tps_create(void)
 {
-    char * ourmmapfile;
+    char * ourmmapfile = "mapfile.txt";
     int fd = open(ourmmapfile,O_CREAT); //make a file for mmap function
     if(fd == -1)
         return -1;
@@ -103,7 +103,7 @@ int tps_destroy(void)
     pthread_t TID = pthread_self();
     
     struct tpsNode * node;
-    int retval = queue_iterate(t->q,findTID,TID,(void*)&node);
+    int retval = queue_iterate(t->q,findTID,(void*)TID,(void*)&node);
     
     if (retval != 0)
         return -1;
@@ -133,8 +133,8 @@ int tps_clone(pthread_t tid)
     
     struct tpsNode * temp;
     struct tpsNode * curTPS;
-    int retval = queue_iterate(t->q,findTID,tid,(void*)&temp);
-    int retval2 = queue_iterate(t->q,findTID,curtid,(void*)&curTPS);
+    int retval = queue_iterate(t->q,findTID,(void*)tid,(void*)&temp);
+    int retval2 = queue_iterate(t->q,findTID,(void*)curtid,(void*)&curTPS);
     
     if (retval != 0)
         return -1;
