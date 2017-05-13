@@ -39,7 +39,6 @@ int tps_write(size_t offset, size_t length, char *buffer)
 
 int tps_clone(pthread_t tid)
 {
-    
 	return 0;
 }
 
