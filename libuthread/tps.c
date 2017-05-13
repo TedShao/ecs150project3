@@ -85,6 +85,7 @@ int tps_create(void)
         node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
         if (node)
         {
+            printf("created a node\n");
             node->TID = curtid;
             node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0);
             node->ourmmapfile = filename;
@@ -139,7 +140,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_RDONLY);
     if (fd==-1)
         return -1;
-    buffer= mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);	
+    *buffer= mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);	
     return 0;
 }
 
@@ -155,7 +156,7 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
-    buffer = mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
+    *buffer = mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
     return 0;
 }
 
