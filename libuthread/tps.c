@@ -156,7 +156,7 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
-    *buffer = mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
+    mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset)=*buffer;
     return 0;
 }
 
