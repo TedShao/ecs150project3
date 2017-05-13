@@ -19,7 +19,7 @@ struct tpsNode{
 };
 
 struct tps{
-    struct queue * q;
+    struct queue * q; //library queue
 }*t;
 
 
@@ -59,27 +59,38 @@ int tps_init(int segv)
         sigaction(SIGSEGV, &sa, NULL);
     }*/
     
+    t->q = queue_create(); //creating queue
+    
     return 0;
 }
 
 int tps_create(void)
 {
-    char * ourmmapfile = "mapfile.txt";
-    int fd = open(ourmmapfile,O_CREAT); //make a file for mmap function
-    if(fd == -1)
+    pthread_t curtid = pthread_self();
+    struct tpsNode * node;
+    int retval = queue_iterate(t->q,findTID,(void*)curtid,(void*)&node);
+    
+    char * filename = "file.txt";
+    int fd = open(filename, O_CREAT);
+    
+    if (retval == 0 && node->ourmmap != NULL)
         return -1;
-    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
-    //allocate memory to tpsnode
-    if (node)
+    
+    if (retval == 0 && node->ourmmap == NULL)
+        node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0); 
+    
+    if (retval != 0)
     {
-        node->TID = pthread_self();
-        node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0);
-        
-        
-        queue_enqueue(t->q,(void*)node);
+        node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
+        if (node)
+        {
+            node->TID = curtid;
+            node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0); 
+            queue_enqueue(t->q,(void*)node);
+        }
+        if (!node)
+            return -1;
     }
-    if (!node)
-        return -1;
     
     return 0;
 }
@@ -91,9 +102,7 @@ int findTID(queue_t queue, void *data, void *arg)
     temp = data;
 
     if (temp->TID == (*(pthread_t*)arg))
-    {
         return 1;
-    }
 
     return 0;
 }
@@ -110,7 +119,8 @@ int tps_destroy(void)
     
     munmap(node->ourmmap,TPS_SIZE);
     
-    queue_delete(t->q,(void*)node);
+    node->ourmmap = NULL;
+    //queue_delete(t->q,(void*)node);
     
     return 0;
 }
@@ -123,6 +133,14 @@ int tps_read(size_t offset, size_t length, char *buffer)
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
+    pthread_t curtid = pthread_self();
+    struct tpsNode * curTPS;
+    int retval = queue_iterate(t->q,findTID,(void*)curtid,(void*)&curTPS);
+    
+    if (retval != 0 || curTPS->ourmmap == NULL)
+        return -1;
+    
+    
     
     return 0;
 }
@@ -136,7 +154,7 @@ int tps_clone(pthread_t tid)
     int retval = queue_iterate(t->q,findTID,(void*)tid,(void*)&temp);
     int retval2 = queue_iterate(t->q,findTID,(void*)curtid,(void*)&curTPS);
     
-    if (retval != 0)
+    if (retval != 0||retval2 !=0)
         return -1;
     
     if (retval2 == 0 && retval == 0)
