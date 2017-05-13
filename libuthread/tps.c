@@ -86,7 +86,8 @@ int tps_create(void)
         if (node)
         {
             node->TID = curtid;
-            node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0); 
+            node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0);
+            node->ourmmapfile = filename;
             queue_enqueue(t->q,(void*)node);
         }
         if (!node)
@@ -148,11 +149,11 @@ int tps_write(size_t offset, size_t length, char *buffer)
     pthread_t curtid= pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
-    if(retval!=0)
+    if (retval!=0)
         return -1;
 
     fd = open(curTPS->ourmmapfile,O_WRONLY);
-    if(fd==-1)
+    if (fd==-1)
         return -1;
     buffer = mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
     return 0;
