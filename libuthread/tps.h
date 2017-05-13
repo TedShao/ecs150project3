@@ -81,7 +81,7 @@ int tps_write(size_t offset, size_t length, char *buffer);
  * tps_clone - Clone TPS
  * @tid: TID of the thread to clone
  *
- * Clone thread @tid's TPS. In the first phase, the cloned TPS's content should
+ * Clone thread @tid's TPS. In the first phase, the cloned TPS's content should be
  * copied directly. In the last phase, the new TPS should not copy the cloned
  * TPS's content but should refer to the same memory page.
  *
