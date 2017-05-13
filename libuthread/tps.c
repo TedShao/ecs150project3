@@ -23,6 +23,7 @@ struct tps{
     struct queue * q; //library queue
 }*t;
 
+int findTID(queue_t queue, void *data, void *arg);
 
 /*static void segv_handler(int sig, siginfo_t *si, void *context)
 {
@@ -140,7 +141,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_RDONLY);
     if (fd==-1)
         return -1;
-    *buffer= mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);	
+    (void*)buffer= mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);	
     return 0;
 }
 
@@ -156,7 +157,7 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
-    mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset)=*buffer;
+    mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset) = buffer;
     return 0;
 }
 
