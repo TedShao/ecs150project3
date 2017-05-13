@@ -132,7 +132,7 @@ int tps_destroy(void)
 int tps_read(size_t offset, size_t length, char *buffer)
 {
     int fd;
-    void * themmap;
+    char * themmap;
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
@@ -153,7 +153,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
 int tps_write(size_t offset, size_t length, char *buffer)
 {
     int fd;
-    void * themmap;
+    char * themmap;
     pthread_t curtid= pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
