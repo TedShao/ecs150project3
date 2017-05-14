@@ -135,7 +135,6 @@ int tps_read(size_t offset, size_t length, char *buffer)
 {
     printf("IN READ\n");
     int fd;
-    char * themmap;
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
@@ -147,7 +146,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
         return -1;
     for (int i = offset; i < length; i++)
     {
-        buffer[i] = curTPS->themmap[i];
+        buffer[i] = curTPS->ourmmap[i];
     }
     return 0;
 }
@@ -156,7 +155,6 @@ int tps_write(size_t offset, size_t length, char *buffer)
 {
     printf("IN WRITE\n");
     int fd;
-    char * themmap;
     pthread_t curtid= pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(t->q,findTID,(void *) curtid,(void *) &curTPS);
@@ -166,11 +164,10 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
-    themmap= mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_SHARED,fd,offset);
     for (int i = offset; i < length; i++)
     {
-        themmap[i] = buffer[i];
-        printf("%c",themmap[i]);
+        curTPS->ourmmap[i] = buffer[i];
+        printf("%c",curTPS->ourmmap[i]);
     }
     
     return 0;
