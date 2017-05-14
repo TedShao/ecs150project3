@@ -97,7 +97,7 @@ int main(int argc, char **argv)
         printf("BEFORE INIT\n");
 	/* Init TPS API */
 	tps_init(1);
-
+        printf("After INIT\n");
 	/* Create thread 1 and wait */
 	pthread_create(&tid, NULL, thread1, NULL);
 	pthread_join(tid, NULL);
