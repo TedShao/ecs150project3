@@ -94,6 +94,7 @@ int main(int argc, char **argv)
 	sem1 = sem_create(0);
 	sem2 = sem_create(0);
 
+        printf("BEFORE INIT\n");
 	/* Init TPS API */
 	tps_init(1);
 
