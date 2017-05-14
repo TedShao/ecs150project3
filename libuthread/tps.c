@@ -51,6 +51,7 @@ int findTID(queue_t queue, void *data, void *arg);
 
 int tps_init(int segv)
 {
+    printf("TPS_INIT\n");
     /*if (segv) {
         struct sigaction sa;
 
