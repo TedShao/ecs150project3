@@ -163,10 +163,11 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
-    themmap= mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_PRIVATE,fd,offset);
+    themmap= mmap(curTPS->ourmmap,length,PROT_WRITE,MAP_SHARED,fd,offset);
     for (int i = offset; i < length; i++)
     {
         themmap[i] = buffer[i];
+        printf("%c",themmap[i]);
     }
     
     return 0;
