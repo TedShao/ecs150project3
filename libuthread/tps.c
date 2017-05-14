@@ -81,7 +81,7 @@ int tps_create(void)
         return -1;
     
     if (retval == 0 && node->ourmmap == NULL)
-        node->ourmmap = mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0); 
+        node->ourmmap = mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, fd, 0); 
     
     if (retval != 0)
     {
@@ -141,12 +141,13 @@ int tps_read(size_t offset, size_t length, char *buffer)
     if (retval!=0)
         return -1;
 
+    char * map = curTPS->ourmmap;
     fd = open(curTPS->ourmmapfile,O_RDONLY);
     if (fd==-1)
         return -1;
     for (int i = offset; i < length; i++)
     {
-        buffer[i] = curTPS->ourmmap[i];
+        buffer[i] = map[i];
     }
     return 0;
 }
@@ -164,10 +165,11 @@ int tps_write(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_WRONLY);
     if (fd==-1)
         return -1;
+    char * map = curTPS->ourmmap;
     for (int i = offset; i < length; i++)
     {
-        curTPS->ourmmap[i] = buffer[i];
-        printf("%c",curTPS->ourmmap[i]);
+        map[i] = buffer[i];
+        //printf("%c",curTPS->ourmmap[i]);
     }
     
     return 0;
