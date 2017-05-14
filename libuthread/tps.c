@@ -81,7 +81,7 @@ int tps_create(void)
         return -1;
     
     if (retval == 0 && node->ourmmap == NULL)
-        node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0); 
+        node->ourmmap = mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE, fd, 0); 
     
     if (retval != 0)
     {
@@ -145,10 +145,9 @@ int tps_read(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_RDONLY);
     if (fd==-1)
         return -1;
-    themmap=mmap(curTPS->ourmmap,length,PROT_READ,MAP_PRIVATE,fd,offset);
     for (int i = offset; i < length; i++)
     {
-        buffer[i] = themmap[i];
+        buffer[i] = curTPS->themmap[i];
     }
     return 0;
 }
