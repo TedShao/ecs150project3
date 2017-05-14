@@ -20,10 +20,10 @@ void* thread2(void* arg)
 	/* Create TPS and initialize with *msg1 */
 	tps_create();
 	tps_write(0, TPS_SIZE, msg1);
-
 	/* Read from TPS and make sure it contains the message */
 	memset(buffer, 0, TPS_SIZE);
 	tps_read(0, TPS_SIZE, buffer);
+        printf("%s",buffer);
 	assert(!memcmp(msg1, buffer, TPS_SIZE));
 	printf("thread2: read OK!\n");
 
