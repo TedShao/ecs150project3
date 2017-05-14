@@ -16,7 +16,7 @@ sem_t sem1, sem2;
 void* thread2(void* arg)
 {
 	char *buffer = malloc(TPS_SIZE);
-
+        printf("In thread 2\n");
 	/* Create TPS and initialize with *msg1 */
 	tps_create();
 	tps_write(0, TPS_SIZE, msg1);
@@ -94,10 +94,8 @@ int main(int argc, char **argv)
 	sem1 = sem_create(0);
 	sem2 = sem_create(0);
 
-        printf("BEFORE INIT\n");
 	/* Init TPS API */
 	tps_init(1);
-        printf("After INIT\n");
 	/* Create thread 1 and wait */
 	pthread_create(&tid, NULL, thread1, NULL);
 	pthread_join(tid, NULL);
