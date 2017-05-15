@@ -70,7 +70,7 @@ int tps_create(void)
 {
     printf("TPS_CREATE\n");
     pthread_t curtid = pthread_self();
-    struct tpsNode * node;
+    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode));
     int retval = queue_iterate(q,findTID,(void*)curtid,(void*)&node);
     
     char * filename = "file.txt";
@@ -132,6 +132,7 @@ int tps_destroy(void)
 
 int tps_read(size_t offset, size_t length, char *buffer)
 {
+    int i;
     printf("IN READ\n");
     int fd;
     pthread_t curtid = pthread_self();
@@ -144,7 +145,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
     fd = open(curTPS->ourmmapfile,O_RDONLY);
     if (fd==-1)
         return -1;
-    for (int i = offset; i < length; i++)
+    for (i = offset; i < length; i++)
     {
         buffer[i] = map[i];
     }
@@ -153,6 +154,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
+    int i;
     printf("IN WRITE\n");
     int fd;
     pthread_t curtid= pthread_self();
@@ -165,7 +167,7 @@ int tps_write(size_t offset, size_t length, char *buffer)
     if (fd==-1)
         return -1;
     char * map = curTPS->ourmmap;
-    for (int i = offset; i < length; i++)
+    for (i = offset; i < length; i++)
     {
         map[i] = buffer[i];
         //printf("%c",curTPS->ourmmap[i]);
