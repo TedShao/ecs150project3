@@ -99,20 +99,21 @@ int queue_delete(queue_t queue, void *data)
     if (queue == NULL || data == NULL || queue->head == NULL)
         return -1;
 
-    if (queue->head->data == data)//Case for data  matches the head node only
+    if (queue->head->data == data)
     {
         struct node *nxt;
-        if (queue->head->next == NULL) //only one node
-          printf("only one node");
-        curr->data = curr->next->data;
-        nxt = curr->next;
-        curr->next = nxt->next;
+        if (queue->head->next != NULL) 
+        {
+            curr->data = curr->next->data;
+            nxt = curr->next;
+            curr->next = nxt->next;
+        }
         free(curr);
     }
 
-    else// Check the if data in queue
+    else
     {
-        while (curr != NULL)//scan the queue to see if theres matching data or null then break out
+        while (curr != NULL)
         {
             if(curr->data == data)
             {
@@ -124,21 +125,23 @@ int queue_delete(queue_t queue, void *data)
                 curr = curr->next;
             }
         }
-
-        // Condition to that check if theres data in the queue or not
-        if (curr->next == NULL && curr->data == data)// check is data match in tail
-        {
-            queue->tail = prev;
-            free(curr);
-        }
-        else if (curr == NULL) // data not found in queue
-        {
+        
+        if (curr == NULL) 
             return -1;
-        }
-        else
+        
+        if (curr != NULL)
         {
-            prev->next = curr->next;
-            free(curr);
+            if (curr->next == NULL && curr->data == data)
+            {
+                queue->tail = prev;
+                free(curr);
+            }
+            
+            else
+            {
+                prev->next = curr->next;
+                free(curr);
+            }
         }
     }
 

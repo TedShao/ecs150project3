@@ -69,7 +69,7 @@ int tps_create(void)
     pthread_t curtid = pthread_self();
     struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
     struct tpsNode * temp;
-    int retval = queue_iterate(q,findTID,(void *)curtid,(void*)&temp);
+    queue_iterate(q,findTID,(void *)curtid,(void*)&temp);
     if (temp==NULL)
         return -1;
     if (!node)
@@ -79,7 +79,7 @@ int tps_create(void)
         node->TID = curtid;
         node->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0); 
         
-        if ( node->ourmmap == NULL)
+        if (node->ourmmap == NULL)
                 return -1;
         
         queue_enqueue(q,(void*)node);
@@ -92,7 +92,7 @@ int findTID(queue_t queue, void *data, void *arg)
     struct tpsNode * temp;
     
     temp = data;
-    pthread_t argtid = (pthread_t *)arg;
+    pthread_t argtid = (*(pthread_t *)arg);
 
     if (temp->TID == argtid)
         return 1;
@@ -107,12 +107,11 @@ int tps_destroy(void)
     struct tpsNode * node;
     queue_iterate(q,findTID,(void*)TID,(void*)&node);
     
-    if (node == NULL)
+    if (!node)
         return -1;
     
-    munmap(node->ourmmap,TPS_SIZE);
+    munmap(&node->ourmmap,TPS_SIZE);
     
-    node->ourmmap = NULL;
     queue_delete(q,(void*)node);
     
     return 0;
@@ -120,6 +119,9 @@ int tps_destroy(void)
 
 int tps_read(size_t offset, size_t length, char *buffer)
 {
+    if (length > TPS_SIZE)
+        return -1;
+    
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     queue_iterate(q,findTID, (void*) curtid,(void *) &curTPS);
@@ -131,7 +133,10 @@ int tps_read(size_t offset, size_t length, char *buffer)
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
-    pthread_t curtid= pthread_self();
+    if (length > TPS_SIZE)
+        return -1;
+    
+    pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     queue_iterate(q,findTID,(void *) curtid,(void *) &curTPS);
     if(curTPS==NULL)
