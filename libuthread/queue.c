@@ -155,11 +155,15 @@ int queue_iterate(queue_t queue, queue_func_t func, void *arg, void **data)
 
     while (tempnode != NULL)
     {
+        printf("inside while loop\n");
         int retval = func(queue,tempnode->data,arg);
         if (retval == 1)
         {
-            *data = tempnode->data;
-            break;
+            if (data != NULL)
+            {
+                *data = tempnode->data;
+                break;
+            }
         }
         tempnode = tempnode->next;
     }

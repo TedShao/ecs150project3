@@ -15,7 +15,7 @@
 
 struct tpsNode{
     pthread_t TID;//tid using TPS
-    void * ourmmap;//pointer to address of mapping
+    char * ourmmap;//pointer to address of mapping
     char * ourmmapfile;
 };
 
@@ -23,6 +23,7 @@ struct tpsNode{
 struct queue * q;
 
 int findTID(queue_t queue, void *data, void *arg);
+int checkMap(queue_t queue, void *data, void *arg);
 
 /*static void segv_handler(int sig, siginfo_t *si, void *context)
 {
@@ -70,43 +71,39 @@ int tps_create(void)
 {
     printf("TPS_CREATE\n");
     pthread_t curtid = pthread_self();
-    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode));
-    int retval = queue_iterate(q,findTID,(void*)curtid,(void*)&node);
-    
-    char * filename = "file.txt";
-    int fd = open(filename, O_CREAT);
-    
-    if (retval == 0 && node->ourmmap != NULL)
+    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
+    struct tpsNode * temp;
+    int retval = queue_iterate(q,findTID,(void *)curtid,(void*)&temp);
+    if (temp==NULL)
         return -1;
-    
-    if (retval == 0 && node->ourmmap == NULL)
+    if (!node)
+        return -1;    
+        
+    char * filename = "file.txt";
+    int fd = open(filename, O_RDWR|O_CREAT);
+        printf("made node\n");
+        node->TID = curtid;
         node->ourmmap = mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE|PROT_EXEC, MAP_PRIVATE, fd, 0); 
+        node->ourmmapfile = filename;
+        queue_enqueue(q,(void*)node);
     
-    if (retval != 0)
-    {
-        node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
-        if (node)
-        {
-            printf("created a node\n");
-            node->TID = curtid;
-            node->ourmmap = mmap(NULL, TPS_SIZE, 0, MAP_PRIVATE, fd, 0);
-            node->ourmmapfile = filename;
-            queue_enqueue(q,(void*)node);
-        }
-        if (!node)
-            return -1;
-    }
     
     return 0;
 }
 
 int findTID(queue_t queue, void *data, void *arg)
 {
+    printf("in findTID\n");
     struct tpsNode * temp;
-
+    
     temp = data;
+    
+    //printf("TEMP TID: %d\n",temp->TID);
+    
+    pthread_t tid = *(pthread_t *)arg;
+    //printf("ARG TID: %d\n", tid);
 
-    if (temp->TID == (*(pthread_t*)arg))
+    if (temp->TID == (*(pthread_t *)arg))
         return 1;
 
     return 0;
@@ -125,7 +122,7 @@ int tps_destroy(void)
     munmap(node->ourmmap,TPS_SIZE);
     
     node->ourmmap = NULL;
-    //queue_delete(t->q,(void*)node);
+    queue_delete(q,(void*)node);
     
     return 0;
 }
@@ -134,45 +131,42 @@ int tps_read(size_t offset, size_t length, char *buffer)
 {
     int i;
     printf("IN READ\n");
-    int fd;
+    //int fd;
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     int retval = queue_iterate(q,findTID,(void *) curtid,(void *) &curTPS);
+    
     if (retval!=0)
         return -1;
 
-    char * map = curTPS->ourmmap;
-    fd = open(curTPS->ourmmapfile,O_RDONLY);
-    if (fd==-1)
-        return -1;
+    //char * map = curTPS->ourmmap;
+    //fd = open(curTPS->ourmmapfile,O_RDONLY);
+    //if (fd==-1)
+      //  return -1;
     for (i = offset; i < length; i++)
     {
-        buffer[i] = map[i];
+        buffer[i] =curTPS->ourmmap[i];
     }
+    //close(fd);
     return 0;
 }
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
-    int i;
     printf("IN WRITE\n");
-    int fd;
+    //int fd;
     pthread_t curtid= pthread_self();
     struct tpsNode * curTPS;
+    printf("Before retval\n");
     int retval = queue_iterate(q,findTID,(void *) curtid,(void *) &curTPS);
-    if (retval!=0)
+    if(curTPS==NULL)
         return -1;
+    printf("after retval\n");
+    pthread_t tid_ret = curTPS->TID;
+    printf("CURTID: %d, TIDRETURNED: %d",curtid, tid_ret);
 
-    fd = open(curTPS->ourmmapfile,O_WRONLY);
-    if (fd==-1)
-        return -1;
-    char * map = curTPS->ourmmap;
-    for (i = offset; i < length; i++)
-    {
-        map[i] = buffer[i];
-        //printf("%c",curTPS->ourmmap[i]);
-    }
-    
+    printf("Before memcpy\n");
+    memcpy((void*)curTPS->ourmmap,(void*)buffer,length);
     return 0;
 }
 

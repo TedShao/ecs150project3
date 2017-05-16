@@ -19,7 +19,6 @@ void* thread2(void* arg)
         printf("In thread 2\n");
 	/* Create TPS and initialize with *msg1 */
 	tps_create();
-        printf("TPS Create Finished\n");
 	tps_write(0, TPS_SIZE, msg1);
 	/* Read from TPS and make sure it contains the message */
 	memset(buffer, 0, TPS_SIZE);
