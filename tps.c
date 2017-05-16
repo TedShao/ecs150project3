@@ -16,7 +16,6 @@ sem_t sem1, sem2;
 void* thread2(void* arg)
 {
 	char *buffer = malloc(TPS_SIZE);
-        printf("In thread 2\n");
 	/* Create TPS and initialize with *msg1 */
 	tps_create();
 	tps_write(0, TPS_SIZE, msg1);
