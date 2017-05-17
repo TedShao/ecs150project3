@@ -13,18 +13,15 @@ DEPFLAGS = -MMD -MF $(@:.o=.d)
 	
 
 libuthread.a: 	$(objs) thread.o
-		ar rcs libuthread.a $(objs) thread.o
+		@echo "AR $@"
+		$(Q)ar rcs $@ $^
 
-queue.o:    queue.c queue.h	
-	    $(CC) $(CFLAGS) -c -o queue.o queue.c $(DEPFLAGS)
+%.o:%.c 	
+	    @echo "CC $@"
+	    $(Q)$(CC) $(CFLAGS) -c -o $@ $< $(DEPFLAGS)
 
-sem.o:	    sem.h queue.h thread.h
-	    $(CC) $(CFLAGS) -c -o sem.o sem.c $(DEPFLAGS)
-	
-tps.o:	    tps.h queue.h thread.h
-	    $(CC) $(CFLAGS) -c -o tps.o tps.c $(DEPFLAGS)
 clean:
-	    $(Q)echo "clean"
+	    @echo "clean"
 	    $(Q)rm -f $(objs) libuthread.a $(deps)
 
 

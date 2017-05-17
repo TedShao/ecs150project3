@@ -32,8 +32,8 @@ int findPage(queue_t queue, void *data, void *arg);
 static void segv_handler(int sig, siginfo_t *si, void *context)
 {
     /*
-     //* Get the address corresponding to the beginning of the page where the
-     //* fault occurred
+      Get the address corresponding to the beginning of the page where the
+      fault occurred
      */
     void *p_fault = (void*)((uintptr_t)si->si_addr & ~(TPS_SIZE - 1));
 
@@ -129,18 +129,14 @@ int findTID(queue_t queue, void *data, void *arg)
 
 int tps_destroy(void)
 {
-    pthread_t TID = pthread_self();
-    
+    pthread_t TID = pthread_self(); 
     struct tpsNode * node;
     queue_iterate(q,findTID,(void*)TID,(void*)&node);
     
-    if (!node)
+    if (node==NULL)
         return -1;
-    
-    munmap(&node->pageptr->ourmmap,TPS_SIZE);
-    
+    munmap(node->pageptr->ourmmap,TPS_SIZE); 
     queue_delete(q,(void*)node);
-    
     return 0;
 }
 
@@ -182,14 +178,13 @@ int tps_write(size_t offset, size_t length, char *buffer)
             return -1;
             
         curTPS->pageptr = p;
-        curTPS->pageptr->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        curTPS->pageptr->ourmmap = (char *) mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
         curTPS->pageptr->ref_counter += 1;
         
         mprotect(prev,length,PROT_READ);
         mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
         memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
         mprotect(prev,length,PROT_NONE);
-        
     }
     mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
     memcpy(curTPS->pageptr->ourmmap+offset,buffer,length);
@@ -203,10 +198,10 @@ int tps_clone(pthread_t tid)
     pthread_t curtid = pthread_self();
     
     struct tpsNode * temp;
+
     queue_iterate(q,findTID,(void*)tid,(void*)&temp);
-    
+     
     struct tpsNode * node = (struct tpsNode*)malloc(sizeof(struct tpsNode));
-    
     if (node)
     {
         
