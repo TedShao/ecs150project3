@@ -48,14 +48,11 @@ void* thread1(void* arg)
 {
 	pthread_t tid;
 	char *buffer = malloc(TPS_SIZE);
-
 	/* Create thread 2 and get blocked */
 	pthread_create(&tid, NULL, thread2, NULL);
 	sem_down(sem1);
-
 	/* When we're back, clone thread 1's TPS */
 	tps_clone(tid);
-
 	/* Read the TPS and make sure it contains the original */
 	memset(buffer, 0, TPS_SIZE);
 	tps_read(0, TPS_SIZE, buffer);

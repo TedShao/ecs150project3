@@ -22,34 +22,52 @@ struct tpsNode{
 struct queue * q;
 
 int findTID(queue_t queue, void *data, void *arg);
+int findPage(queue_t queue, void *data, void *arg);
 
-/*static void segv_handler(int sig, siginfo_t *si, void *context)
+static void segv_handler(int sig, siginfo_t *si, void *context)
 {
-    *
-     * Get the address corresponding to the beginning of the page where the
-     * fault occurred
-     *
+    printf("inside segv_handler function\n");
+
+    /*
+     //* Get the address corresponding to the beginning of the page where the
+     //* fault occurred
+     */
     void *p_fault = (void*)((uintptr_t)si->si_addr & ~(TPS_SIZE - 1));
 
     
-     * Iterate through all the TPS areas and find if p_fault matches one of them
+     //* Iterate through all the TPS areas and find if p_fault matches one of them
      
+    struct tpsNode * temp;
+    queue_iterate(q,findPage,p_fault,(void*)&temp);
     
-    if ( There is a match )
-         Printf the following error message 
+     
+    if (temp!=NULL)
         fprintf(stderr, "TPS protection error!\n");
 
-     In any case, restore the default signal handlers 
+     //In any case, restore the default signal handlers 
     signal(SIGSEGV, SIG_DFL);
     signal(SIGBUS, SIG_DFL);
-     And transmit the signal again in order to cause the program to crash 
+     //And transmit the signal again in order to cause the program to crash 
     raise(sig);
-}*/
+}
 
+int findPage(queue_t queue, void *data, void *arg)
+{
+    struct tpsNode * temp;
+    
+    temp = data;
+    
+    if (temp->ourmmap == arg)
+        return 1;
+    
+    return 0;
+}
 
 int tps_init(int segv)
 {
-    if (segv) {
+    q = queue_create(); //creating queue
+    
+    if (segv != 0) {
         struct sigaction sa;
 
         sigemptyset(&sa.sa_mask);
@@ -57,9 +75,7 @@ int tps_init(int segv)
         sa.sa_sigaction = segv_handler;
         sigaction(SIGBUS, &sa, NULL);
         sigaction(SIGSEGV, &sa, NULL);
-    }
-    
-    q = queue_create(); //creating queue
+    }   
     
     return 0;
 }
@@ -162,9 +178,12 @@ int tps_clone(pthread_t tid)
     if(node)
     {
         node->TID = curtid;
-        node->ourmmap =  (char *)mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        node->ourmmap =  (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
+        mprotect(node->ourmmap,TPS_SIZE,PROT_WRITE);
+        mprotect(temp->ourmmap,TPS_SIZE,PROT_READ);
         memcpy(node->ourmmap,temp->ourmmap,TPS_SIZE);
-        
+        mprotect(node->ourmmap,TPS_SIZE,PROT_NONE);
+        mprotect(temp->ourmmap,TPS_SIZE,PROT_NONE);
         if ( node->ourmmap == NULL)
                 return -1;
         
