@@ -211,8 +211,7 @@ int tps_clone(pthread_t tid)
     {
         
         node->TID = curtid;
-        //node->ourmmap =  (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
-        
+
         if ( temp->pageptr->ourmmap == NULL)
                 return -1;
                 
