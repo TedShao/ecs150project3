@@ -13,10 +13,15 @@
 #include "thread.h"
 #include "tps.h"
 
+struct page{
+    void * ourmmap;
+    int ref_counter;
+};
 struct tpsNode{
     pthread_t TID;//tid using TPS
-    void * ourmmap;//pointer to address of mapping
+    struct page * pageptr;
 };
+
 
 
 struct queue * q;
@@ -26,8 +31,6 @@ int findPage(queue_t queue, void *data, void *arg);
 
 static void segv_handler(int sig, siginfo_t *si, void *context)
 {
-    printf("inside segv_handler function\n");
-
     /*
      //* Get the address corresponding to the beginning of the page where the
      //* fault occurred
@@ -57,7 +60,7 @@ int findPage(queue_t queue, void *data, void *arg)
     
     temp = data;
     
-    if (temp->ourmmap == arg)
+    if (temp->pageptr->ourmmap == arg)
         return 1;
     
     return 0;
@@ -90,15 +93,23 @@ int tps_create(void)
         return -1;
     if (!node)
         return -1;    
-    if(node)
+    if (node)
     {
         node->TID = curtid;
-        node->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        struct page * p = (struct page *)malloc(sizeof(struct page));
         
-        if (node->ourmmap == NULL)
-                return -1;
+        if (!p)
+            return -1;
+            
+        node->pageptr = p;
+        p->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        p->ref_counter += 1;
+        
+        if (p->ourmmap == NULL)
+            return -1;
         
         queue_enqueue(q,(void*)node);
+        
     }
     return 0;
 }
@@ -126,7 +137,7 @@ int tps_destroy(void)
     if (!node)
         return -1;
     
-    munmap(&node->ourmmap,TPS_SIZE);
+    munmap(&node->pageptr->ourmmap,TPS_SIZE);
     
     queue_delete(q,(void*)node);
     
@@ -143,9 +154,9 @@ int tps_read(size_t offset, size_t length, char *buffer)
     queue_iterate(q,findTID, (void*) curtid,(void *) &curTPS);
     if (curTPS==NULL)
         return -1;
-    mprotect(curTPS->ourmmap,length,PROT_READ);
-    memcpy(buffer,curTPS->ourmmap+offset,length);
-    mprotect(curTPS->ourmmap,length,PROT_NONE);
+    mprotect(curTPS->pageptr->ourmmap,length,PROT_READ);
+    memcpy(buffer,curTPS->pageptr->ourmmap+offset,length);
+    mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
     return 0;
 }
 
@@ -156,12 +167,33 @@ int tps_write(size_t offset, size_t length, char *buffer)
     
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
+    struct page * prev;
     queue_iterate(q,findTID,(void *) curtid,(void *) &curTPS);
     if(curTPS==NULL)
         return -1;
-    mprotect(curTPS->ourmmap,length,PROT_WRITE);
-    memcpy(curTPS->ourmmap+offset,buffer,length);
-    mprotect(curTPS->ourmmap,length,PROT_NONE);
+        
+    if (curTPS->pageptr->ref_counter > 1)
+    {
+        curTPS->pageptr->ref_counter--;
+        prev = curTPS->pageptr->ourmmap;
+        struct page * p = (struct page *)malloc(sizeof(struct page));
+        
+        if (!p)
+            return -1;
+            
+        curTPS->pageptr = p;
+        curTPS->pageptr->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        curTPS->pageptr->ref_counter += 1;
+        
+        mprotect(prev,length,PROT_READ);
+        mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
+        memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
+        mprotect(prev,length,PROT_NONE);
+        
+    }
+    mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
+    memcpy(curTPS->pageptr->ourmmap+offset,buffer,length);
+    mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
     return 0;
 }
 
@@ -175,17 +207,18 @@ int tps_clone(pthread_t tid)
     
     struct tpsNode * node = (struct tpsNode*)malloc(sizeof(struct tpsNode));
     
-    if(node)
+    if (node)
     {
+        
         node->TID = curtid;
-        node->ourmmap =  (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
-        mprotect(node->ourmmap,TPS_SIZE,PROT_WRITE);
-        mprotect(temp->ourmmap,TPS_SIZE,PROT_READ);
-        memcpy(node->ourmmap,temp->ourmmap,TPS_SIZE);
-        mprotect(node->ourmmap,TPS_SIZE,PROT_NONE);
-        mprotect(temp->ourmmap,TPS_SIZE,PROT_NONE);
-        if ( node->ourmmap == NULL)
+        //node->ourmmap =  (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0);
+        
+        if ( temp->pageptr->ourmmap == NULL)
                 return -1;
+                
+        node->pageptr = temp->pageptr;
+        node->pageptr->ref_counter++;
+        
         
         queue_enqueue(q,(void*)node);
     }
