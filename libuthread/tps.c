@@ -49,7 +49,7 @@ int findTID(queue_t queue, void *data, void *arg);
 
 int tps_init(int segv)
 {
-    /*if (segv) {
+    if (segv) {
         struct sigaction sa;
 
         sigemptyset(&sa.sa_mask);
@@ -57,7 +57,7 @@ int tps_init(int segv)
         sa.sa_sigaction = segv_handler;
         sigaction(SIGBUS, &sa, NULL);
         sigaction(SIGSEGV, &sa, NULL);
-    }*/
+    }
     
     q = queue_create(); //creating queue
     
@@ -77,7 +77,7 @@ int tps_create(void)
     if(node)
     {
         node->TID = curtid;
-        node->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANON, -1, 0); 
+        node->ourmmap = (char *)mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
         
         if (node->ourmmap == NULL)
                 return -1;
@@ -127,7 +127,9 @@ int tps_read(size_t offset, size_t length, char *buffer)
     queue_iterate(q,findTID, (void*) curtid,(void *) &curTPS);
     if (curTPS==NULL)
         return -1;
+    mprotect(curTPS->ourmmap,length,PROT_READ);
     memcpy(buffer,curTPS->ourmmap+offset,length);
+    mprotect(curTPS->ourmmap,length,PROT_NONE);
     return 0;
 }
 
@@ -141,7 +143,9 @@ int tps_write(size_t offset, size_t length, char *buffer)
     queue_iterate(q,findTID,(void *) curtid,(void *) &curTPS);
     if(curTPS==NULL)
         return -1;
+    mprotect(curTPS->ourmmap,length,PROT_WRITE);
     memcpy(curTPS->ourmmap+offset,buffer,length);
+    mprotect(curTPS->ourmmap,length,PROT_NONE);
     return 0;
 }
 
