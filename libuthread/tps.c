@@ -158,7 +158,7 @@ int tps_read(size_t offset, size_t length, char *buffer)
     a=mprotect(curTPS->pageptr->ourmmap,length,PROT_READ);
     memcpy(buffer,curTPS->pageptr->ourmmap+offset,length);
     b=mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
-    if(a==-1|b==-1)
+    if(a==-1||b==-1)
         return -1;
     return 0;
 }
