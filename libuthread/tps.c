@@ -40,7 +40,7 @@ static void segv_handler(int sig, siginfo_t *si, void *context)
     
      //* Iterate through all the TPS areas and find if p_fault matches one of them
      
-    struct tpsNode * temp;
+    struct tpsNode * temp = NULL;
     queue_iterate(q,findPage,p_fault,(void*)&temp);
     
      

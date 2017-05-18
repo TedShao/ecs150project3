@@ -18,7 +18,7 @@ are available.
 ## TPS Struct
 In the TPS struct (tpsNode) we have a pointer to a Page and a reference counter.
 The pointer to the page is allocated in the create function and in the write
-function when referece counter is greater than one.
+function when the reference counter is greater than one.
 
     struct tpsNode{
     pthread_t TID;//tid using TPS
@@ -52,19 +52,19 @@ be the thread that does stuff between the sem_up and sem_down functions.
 
 ### Sem_up() Function
 For our sem_up function, we first have the thread enter the critical
-section. If there are no more resources avaiable, it will check to see if there 
+section. If there are no more resources available, it will check to see if there 
 is anything in the waiting queue. If there is something in the waiting queue, 
 we will take it out of the queue and unblock that thread we took out. Once we
 are done we have the thread exit the critical section.
 
 
-## Thread Private Storage
+## Thread Private Storage API
 
 ### Tps_read() Function
 The Tps read function is to copy a page into the buffer to verify if the message
 is correctly copied. This function has arguments of length and offset. The 
 offset variable is used to copy at the offset instead of the beginning of the 
-page page. Since ourmmap is not protected when created, we need to utilize the
+page. Since ourmmap is not protected when created, we need to utilize the
 mprotect function to do a protected read (PROT_READ). Then once we have 
 completed the copy we set the protection back to none (PROT_NONE).
 
@@ -78,11 +78,22 @@ set the protection back to none (PROT_NONE).
 ### Tps_clone() Function 
 The Tps clone function makes a new Tps object for the current running thread.
 This Tps object will have the tid of the current running thread and will 
-also have a pointer that points to the page of the thread that we passed into
+also have a pointer that points to the page of the thread whose tid was passed
+into the function. We check to see if the current thread already has a TPS and 
+also check if the thread we are cloning has a TPS.
 
-### Callback Functions
+### Segv_Handler
+For the handler, we iterate through our pages to see which page has a page 
+fault with the p_fault function that was given to us. When we find the TPS page
+that does this, we print out a message saying that the segfault was caused by 
+having the wrong protections on our page. We restore the default signals and 
+then raise a signal to make the program crash.
+
+# Callback Functions
 
 ## findPage() Function
+This callback function uses queue_iterate to find a page within a TPS. It checks
+to see if the pointer of arg is equal to the mmap. 
 
     int findPage(queue_t queue, void *data, void *arg)
     {
@@ -95,3 +106,17 @@ also have a pointer that points to the page of the thread that we passed into
 
 
 ## findTID() Function
+This callback function uses queue_iterate to find a matching TID. If the TID is
+found it will return the address to the TPS in the queue. 
+
+    int findTID(queue_t queue, void *data, void *arg)
+    {
+        struct tpsNode * temp;
+        temp = data;
+        pthread_t argtid = (*(pthread_t *)arg);
+        if (temp->TID == argtid)
+            return 1;
+        return 0;
+    }
+    
+    
