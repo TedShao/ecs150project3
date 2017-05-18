@@ -1,8 +1,0 @@
-MAKE	libuthread/libuthread.a
-# TODO
-CC	sem_count.o
-LD	sem_count.x
-ld: library not found for -luthread
-clang: error: linker command failed with exit code 1 (use -v to see invocation)
-make: *** [sem_count.x] Error 1
-rm sem_count.o
