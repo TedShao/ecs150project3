@@ -135,8 +135,8 @@ int tps_destroy(void)
     
     if (node==NULL)
         return -1;
+    
     munmap(node->pageptr->ourmmap,TPS_SIZE); 
-    queue_delete(q,(void*)node);
     return 0;
 }
 
