@@ -86,11 +86,14 @@ int tps_init(int segv)
 int tps_create(void)
 {
     pthread_t curtid = pthread_self();
-    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
-    struct tpsNode * temp;
+    struct tpsNode * temp = NULL;
     queue_iterate(q,findTID,(void *)curtid,(void*)&temp);
-    if (temp==NULL)
+    
+    if (temp!=NULL)
         return -1;
+        
+    struct tpsNode * node = (struct tpsNode *)malloc(sizeof(struct tpsNode)); 
+    
     if (!node)
         return -1;    
     if (node)
@@ -142,22 +145,28 @@ int tps_destroy(void)
 
 int tps_read(size_t offset, size_t length, char *buffer)
 {
+    int a,b;
     if (length > TPS_SIZE)
         return -1;
     
     pthread_t curtid = pthread_self();
     struct tpsNode * curTPS;
     queue_iterate(q,findTID, (void*) curtid,(void *) &curTPS);
+    
     if (curTPS==NULL)
         return -1;
-    mprotect(curTPS->pageptr->ourmmap,length,PROT_READ);
+    a=mprotect(curTPS->pageptr->ourmmap,length,PROT_READ);
     memcpy(buffer,curTPS->pageptr->ourmmap+offset,length);
-    mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
+    b=mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
+    if(a==-1|b==-1)
+        return -1;
     return 0;
 }
 
 int tps_write(size_t offset, size_t length, char *buffer)
 {
+    int a,b,c;
+    
     if (length > TPS_SIZE)
         return -1;
     
@@ -181,34 +190,45 @@ int tps_write(size_t offset, size_t length, char *buffer)
         curTPS->pageptr->ourmmap = (char *) mmap(NULL, TPS_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANON, -1, 0); 
         curTPS->pageptr->ref_counter += 1;
         
-        mprotect(prev,length,PROT_READ);
+        a = mprotect(prev,length,PROT_READ);
         mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
-        memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
-        mprotect(prev,length,PROT_NONE);
+        b = memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
+        c = mprotect(prev,length,PROT_NONE);
+       
+        if (a==-1 || b==-1 || c==-1)
+            return -1;
     }
-    mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
+    a = mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
     memcpy(curTPS->pageptr->ourmmap+offset,buffer,length);
-    mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
+    b = mprotect(curTPS->pageptr->ourmmap,length,PROT_NONE);
+    
+    if (a==-1 || b==-1)
+        return -1;
+    
     return 0;
 }
 
 int tps_clone(pthread_t tid)
 {
-    
     pthread_t curtid = pthread_self();
+
     
-    struct tpsNode * temp;
+    struct tpsNode * temp = NULL;
+    struct tpsNode * cur = NULL;
 
     queue_iterate(q,findTID,(void*)tid,(void*)&temp);
-     
+    queue_iterate(q,findTID,(void*)curtid,(void*)&cur);
+    
+    if(cur!=NULL)
+        return -1;
+    if ( temp->pageptr->ourmmap == NULL)
+        return -1;
+        
     struct tpsNode * node = (struct tpsNode*)malloc(sizeof(struct tpsNode));
     if (node)
     {
         
         node->TID = curtid;
-
-        if ( temp->pageptr->ourmmap == NULL)
-                return -1;
                 
         node->pageptr = temp->pageptr;
         node->pageptr->ref_counter++;
@@ -216,7 +236,9 @@ int tps_clone(pthread_t tid)
         
         queue_enqueue(q,(void*)node);
     }
-
+    else
+        return -1;
+    
     
     return 0;
 }

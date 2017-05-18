@@ -53,6 +53,7 @@ void* thread1(void* arg)
 	sem_down(sem1);
 	/* When we're back, clone thread 1's TPS */
 	tps_clone(tid);
+	tps_clone(tid);
 	/* Read the TPS and make sure it contains the original */
 	memset(buffer, 0, TPS_SIZE);
 	tps_read(0, TPS_SIZE, buffer);
