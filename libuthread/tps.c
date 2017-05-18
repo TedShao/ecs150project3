@@ -191,11 +191,11 @@ int tps_write(size_t offset, size_t length, char *buffer)
         curTPS->pageptr->ref_counter += 1;
         
         a = mprotect(prev,length,PROT_READ);
-        mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
-        b = memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
+        b=mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
+         memcpy(curTPS->pageptr->ourmmap,prev,TPS_SIZE);
         c = mprotect(prev,length,PROT_NONE);
        
-        if (a==-1 || b==-1 || c==-1)
+        if (a==-1 ||b==-1 || c==-1)
             return -1;
     }
     a = mprotect(curTPS->pageptr->ourmmap,length,PROT_WRITE);
